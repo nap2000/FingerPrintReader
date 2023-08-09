@@ -2,6 +2,8 @@ package au.smap.smapfingerprintreader;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -19,6 +21,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.core.view.WindowCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -26,20 +30,44 @@ import androidx.navigation.ui.NavigationUI;
 
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.databinding.ActivityScanBinding;
+import au.smap.smapfingerprintreader.model.ScannerViewModel;
 
 public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callback {
 
+    AppBarConfiguration appBarConfiguration;
     FingerprintReader app;
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityScanBinding binding;
+    private ScannerViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        /*
+         * Create Observers
+         */
+        model = new ViewModelProvider(this).get(ScannerViewModel.class);
+        final Observer<byte[]> imageObserver = new Observer<byte[]>() {
+            @Override
+            public void onChanged(byte[] bytes) {
+                app.setLogs("Got the image", false);
+
+                // Return the results
+                Intent returnIntent = new Intent();
+                setResult(Activity.RESULT_OK, returnIntent);
+                finish();
+            }
+        };
+
+        // Start observing the image live data
+        model.getImage().observe(this, imageObserver);
+
+        /*
+         * Set up the scanner
+         */
         app = FingerprintReader.getInstance();
         setContentView(R.layout.activity_main);
         app.logView = (TextView) findViewById(R.id.log);
+        app.clearLogs();
 
         app.setScanner(this, this);
 
@@ -50,78 +78,58 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
         Intent intent = getIntent();
         String type = intent.getStringExtra("type");
 
+        app.setLogs("Capture requested", false);
         if(app.currentDevice != null) {
-            app.startCapture(10,10);
+            app.setLogs("Starting capture", false);
+            app.startCapture(10, 10);
+        } else {
+            app.setLogs("Connect the device", false);
         }
     }
 
     /*
      * Fingerprint reader callback functions
+     * Called when the device is connected or disconnected
      */
     @Override
     public void OnDeviceDetection(String deviceName, DeviceDetection detection) {
+        app.setLogs("Device Detection " + deviceName + (detection == DeviceDetection.CONNECTED ? " connected" : " disconnected"), false);
         app.deviceDetected(deviceName, detection, true);
     }
 
-    /*
-     * Smap Fingerprint Reader does not use preview
-     */
     @Override
     public void OnPreview(int errorCode, int quality, byte[] image) {
-
-    }
-
-    @Override
-    public void OnComplete(int errorCode, int quality, int nfiq) {
         try {
-            app.isStartCaptureRunning = false;
-            if (errorCode == 0) {
-                app.setLogs("Capture Success" + quality, false);
-                /*
-                setTxtStatusMessage(quality);
-                if (scannerAction == ScannerAction.Capture) {
-                    int Size = lastDeviceInfo.Width * lastDeviceInfo.Height + 1111;
-                    byte[] bImage = new byte[Size];
-                    int[] tSize = new int[Size];
-                    int ret = morfinAuth.GetTemplate(bImage, tSize, captureTemplateDatas);
-                    if (ret == 0) {
-                        lastCapFingerData = new byte[Size];
-                        System.arraycopy(bImage, 0, lastCapFingerData, 0,
-                                bImage.length);
-                    } else {
-                        setLogs(morfinAuth.GetErrorMessage(ret), true);
-                    }
-                }
+            if (errorCode == 0 && image != null) {
 
-                 */
+                app.setLogs("Preview Quality: " + quality, false);
             } else {
                 if(errorCode == -2057){
                     app.setLogs("Device Not Connected",true);
                 }else{
-                    app.setLogs("CaptureComplete: " + errorCode + " (" + app.morfinAuth.GetErrorMessage(errorCode) + ")", true);
+                    app.setLogs("Preview Error Code: " + errorCode + " (" + app.morfinAuth.GetErrorMessage(errorCode) + ")", true);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
-        /*
-         * Return the results of the Scan
-         */
-        Intent returnIntent = new Intent();
-        returnIntent.putExtra("value", "Hello from the scanner");
-        setResult(Activity.RESULT_OK, returnIntent);
-        finish();
+    @Override
+    public void OnComplete(int errorCode, int quality, int nfiq) {
+        app.setLogs("Complete" + errorCode, false);
+        app.complete(errorCode, quality, nfiq);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        try {
-            app.destroy();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         super.onDestroy();
+        app.destroy();
     }
 
 
@@ -132,5 +140,6 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }
+
 
 }

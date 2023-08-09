@@ -18,32 +18,13 @@ import org.w3c.dom.Text;
 
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 
-public class MainActivity extends AppCompatActivity implements MorfinAuth_Callback {
+public class MainActivity extends AppCompatActivity {
 
     FingerprintReader app;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        app = FingerprintReader.getInstance();
-        setContentView(R.layout.activity_main);
-        app.logView = (TextView) findViewById(R.id.log);
-
-        app.setScanner(this, this);
-
-    }
-
-    @Override
-    public void OnPreview(int errorCode, int quality, byte[] image) {
-
-    }
-    @Override
-    public void OnComplete(int errorCode, int quality, int nfiq) {
-
-    }
-    @Override
-    public void OnDeviceDetection(String deviceName, DeviceDetection detection) {
-        app.deviceDetected(deviceName, detection, false);
     }
 
 }
