@@ -1,10 +1,12 @@
 package au.smap.smapfingerprintreader;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -27,6 +30,9 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.databinding.ActivityScanBinding;
@@ -36,40 +42,15 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
 
     AppBarConfiguration appBarConfiguration;
     FingerprintReader app;
-    private ScannerViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        /*
-         * Create Observers
-         */
-        model = new ViewModelProvider(this).get(ScannerViewModel.class);
-        final Observer<byte[]> imageObserver = new Observer<byte[]>() {
-            @Override
-            public void onChanged(byte[] bytes) {
-                app.setLogs("Got the image", false);
-
-                // Return the results
-                Intent returnIntent = new Intent();
-                setResult(Activity.RESULT_OK, returnIntent);
-                finish();
-            }
-        };
-
-        // Start observing the image live data
-        model.getImage().observe(this, imageObserver);
-
-        /*
-         * Set up the scanner
-         */
         app = FingerprintReader.getInstance();
         setContentView(R.layout.activity_main);
         app.logView = (TextView) findViewById(R.id.log);
         app.clearLogs();
-
-        app.setScanner(this, this);
 
         /*
          * Get the Intent that started the scan activity
@@ -77,11 +58,40 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
          */
         Intent intent = getIntent();
         String type = intent.getStringExtra("type");
+        app.minQuality = 20;
+        app.timeOut = 10000;
+
+        /*
+         * Set up the scanner
+         */
+        app.setScanner(this, this);
+
+        /*
+         * Create Observers
+         */
+        app.model = new ViewModelProvider(this).get(ScannerViewModel.class);
+        final Observer<Uri> imageObserver = new Observer<Uri>() {
+            @Override
+            public void onChanged(Uri uri) {
+                app.setLogs("Image changed called: " + uri.toString(), false);
+
+                // Return the results
+                Intent returnIntent = new Intent();
+                returnIntent.setClipData(ClipData.newRawUri("fpr.png", uri));
+                returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                setResult(Activity.RESULT_OK, returnIntent);
+                finish();
+            }
+        };
+
+        // Start observing the image live data
+        app.model.getImage().observe(this, imageObserver);
 
         app.setLogs("Capture requested", false);
         if(app.currentDevice != null) {
             app.setLogs("Starting capture", false);
-            app.startCapture(10, 10);
+            app.startCapture(app.minQuality, app.timeOut);
         } else {
             app.setLogs("Connect the device", false);
         }

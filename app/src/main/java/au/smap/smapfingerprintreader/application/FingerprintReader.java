@@ -4,10 +4,14 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.mantra.morfinauth.DeviceInfo;
 import com.mantra.morfinauth.MorfinAuth;
@@ -17,7 +21,11 @@ import com.mantra.morfinauth.enums.DeviceModel;
 import com.mantra.morfinauth.enums.ImageFormat;
 import com.mantra.morfinauth.enums.TemplateFormat;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
+
+import au.smap.smapfingerprintreader.model.ScannerViewModel;
 
 public class FingerprintReader extends Application {
 
@@ -31,14 +39,16 @@ public class FingerprintReader extends Application {
     public String currentDevice;            // Name of currently connected device
     public boolean setupComplete = false;   // Set true when a scanner has been enabled
     public String clientKey = "";
+
+    public ScannerViewModel model;
     private DeviceInfo lastDeviceInfo;
     private enum ScannerAction {
         Capture, MatchISO, MatchAnsi
     }
-    int minQuality = 60;
-    int timeOut = 10000;
+    public int minQuality = 60;
+    public int timeOut = 10000;
     TemplateFormat captureTemplateDatas;
-    ImageFormat captureImageDatas;
+    ImageFormat captureImageData;
     private byte[] lastCapFingerData;
     private ScannerAction scannerAction = ScannerAction.Capture;
 
@@ -86,7 +96,7 @@ public class FingerprintReader extends Application {
         setLogs("Scanner added", false);
         setupComplete = true;
 
-        captureImageDatas = (ImageFormat.BMP);
+        captureImageData = (ImageFormat.BMP);
         captureTemplateDatas = (TemplateFormat.FMR_V2005);
 
         if(currentDevice != null) {
@@ -156,18 +166,37 @@ public class FingerprintReader extends Application {
             if (errorCode == 0) {
                 setLogs("Capture Success" + quality, false);
 
-                // setTxtStatusMessage(quality);
+                setLogs("Scanner action: " + scannerAction.name(), false);
                 if (scannerAction == ScannerAction.Capture) {
                     int Size = lastDeviceInfo.Width * lastDeviceInfo.Height + 1111;
                     byte[] bImage = new byte[Size];
                     int[] tSize = new int[Size];
-                    int ret = morfinAuth.GetTemplate(bImage, tSize, captureTemplateDatas);
+                    int ret = morfinAuth.GetImage(bImage, tSize, 1, captureImageData);
                     if (ret == 0) {
-                        lastCapFingerData = new byte[Size];
-                        System.arraycopy(bImage, 0, lastCapFingerData, 0,
-                                bImage.length);
+                        setLogs("Got image from reader: " + Size, false);
+
+                        File imagePath = new File(getApplicationContext().getFilesDir(), "scan_images");
+                        if(!imagePath.exists()) {
+                            imagePath.mkdir();
+                        }
+
+                        try {
+                            File outputFile = File.createTempFile("fpr", ".png", imagePath);
+                            FileOutputStream of = new FileOutputStream(outputFile);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(bImage, 0, bImage.length);
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, of);
+
+                            Uri uri = FileProvider.getUriForFile(getApplicationContext(), "au.com.smap.FingerprintReader.fileprovider", outputFile);
+
+                            setLogs(uri.toString(), false);
+
+                            model.getImage().postValue(uri);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            setLogs("Error: " + e.getMessage(), true);
+                        }
                     } else {
-                        setLogs(morfinAuth.GetErrorMessage(ret), true);
+                        setLogs("Get Image: " + morfinAuth.GetErrorMessage(ret), true);
                     }
                 }
 
