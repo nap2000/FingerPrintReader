@@ -37,11 +37,13 @@ import java.io.FileOutputStream;
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.databinding.ActivityScanBinding;
 import au.smap.smapfingerprintreader.model.ScannerViewModel;
+import au.smap.smapfingerprintreader.scanners.MFS500;
 
-public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callback {
+public class ScanActivity extends AppCompatActivity {
 
     AppBarConfiguration appBarConfiguration;
     FingerprintReader app;
+    MFS500 scanner = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +66,8 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
         /*
          * Set up the scanner
          */
-        app.setScanner(this, this);
+        scanner = new MFS500(getApplicationContext());
+        scanner.setScanner(this);
 
         /*
          * Create Observers
@@ -91,44 +94,10 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
         app.setLogs("Capture requested", false);
         if(app.currentDevice != null) {
             app.setLogs("Starting capture", false);
-            app.startCapture(app.minQuality, app.timeOut);
+            scanner.startCapture(app.minQuality, app.timeOut);
         } else {
             app.setLogs("Connect the device", false);
         }
-    }
-
-    /*
-     * Fingerprint reader callback functions
-     * Called when the device is connected or disconnected
-     */
-    @Override
-    public void OnDeviceDetection(String deviceName, DeviceDetection detection) {
-        app.setLogs("Device Detection " + deviceName + (detection == DeviceDetection.CONNECTED ? " connected" : " disconnected"), false);
-        app.deviceDetected(deviceName, detection, true);
-    }
-
-    @Override
-    public void OnPreview(int errorCode, int quality, byte[] image) {
-        try {
-            if (errorCode == 0 && image != null) {
-
-                app.setLogs("Preview Quality: " + quality, false);
-            } else {
-                if(errorCode == -2057){
-                    app.setLogs("Device Not Connected",true);
-                }else{
-                    app.setLogs("Preview Error Code: " + errorCode + " (" + app.morfinAuth.GetErrorMessage(errorCode) + ")", true);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void OnComplete(int errorCode, int quality, int nfiq) {
-        app.setLogs("Complete" + errorCode, false);
-        app.complete(errorCode, quality, nfiq);
     }
 
     @Override
@@ -139,7 +108,7 @@ public class ScanActivity extends AppCompatActivity implements MorfinAuth_Callba
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        app.destroy();
+        scanner.destroy();
     }
 
 
