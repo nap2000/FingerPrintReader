@@ -7,12 +7,14 @@ import androidx.lifecycle.ViewModel;
 
 public class ScannerViewModel extends ViewModel {
 
-    private MutableLiveData<Uri> image;
+    private MutableLiveData<String> scannerState = new MutableLiveData("disconnected");
+    private MutableLiveData<Uri> image = new MutableLiveData<>();
 
+    public MutableLiveData<String> getScannerState() {
+        return scannerState;
+    }
     public MutableLiveData<Uri> getImage() {
-        if(image == null) {
-            image = new MutableLiveData<>();
-        }
         return image;
     }
+
 }

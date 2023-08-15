@@ -19,8 +19,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 import au.smap.smapfingerprintreader.application.FingerprintReader;
+import au.smap.smapfingerprintreader.utilities.FileUtilities;
 
-public class MFS500 implements MorfinAuth_Callback {
+public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
     FingerprintReader app;
     Context context;
     public boolean isStartCaptureRunning;
@@ -34,9 +35,21 @@ public class MFS500 implements MorfinAuth_Callback {
     }
     private ScannerAction scannerAction = ScannerAction.Capture;
     public MorfinAuth morfinAuth;
-    public MFS500(Context context) {
+    public MFS500Scanner(Context context) {
         this.context = context;
         app = FingerprintReader.getInstance();
+
+        app.setLogs("setScanner", false);
+        morfinAuth = new MorfinAuth(context, this);
+        app.setLogs("Scanner added", false);
+        setupComplete = true;
+
+        captureImageData = (ImageFormat.BMP);
+        captureTemplateDatas = (TemplateFormat.FMR_V2005);
+
+        if(app.currentDevice != null) {
+            initialise();
+        }
     }
 
     /*
@@ -107,26 +120,10 @@ public class MFS500 implements MorfinAuth_Callback {
                     if (ret == 0) {
                         app.setLogs("Got image from reader: " + Size, false);
 
-                        File imagePath = new File(context.getFilesDir(), "scan_images");
-                        if(!imagePath.exists()) {
-                            imagePath.mkdir();
-                        }
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(bImage, 0, bImage.length);
+                        Uri uri = FileUtilities.getUri(context, app, bitmap);
+                        app.model.getImage().postValue(uri);
 
-                        try {
-                            File outputFile = File.createTempFile("fpr", ".png", imagePath);
-                            FileOutputStream of = new FileOutputStream(outputFile);
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(bImage, 0, bImage.length);
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, of);
-
-                            Uri uri = FileProvider.getUriForFile(context, "au.com.smap.FingerprintReader.fileprovider", outputFile);
-
-                            app.setLogs(uri.toString(), false);
-
-                            app.model.getImage().postValue(uri);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            app.setLogs("Error: " + e.getMessage(), true);
-                        }
                     } else {
                         app.setLogs("Get Image: " + morfinAuth.GetErrorMessage(ret), true);
                     }
@@ -144,18 +141,7 @@ public class MFS500 implements MorfinAuth_Callback {
         }
     }
 
-    public void setScanner(Context context) {
-        app.setLogs("setScanner", false);
-        morfinAuth = new MorfinAuth(context, this);
-        app.setLogs("Scanner added", false);
-        setupComplete = true;
-
-        captureImageData = (ImageFormat.BMP);
-        captureTemplateDatas = (TemplateFormat.FMR_V2005);
-
-        if(app.currentDevice != null) {
-            initialise();
-        }
+    public void connect() {
 
     }
     public void startCapture(int minQuality, int timeOut) {
