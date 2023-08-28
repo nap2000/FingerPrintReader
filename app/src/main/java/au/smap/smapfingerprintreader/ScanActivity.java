@@ -19,6 +19,7 @@ import androidx.preference.PreferenceManager;
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.model.ScannerViewModel;
 import au.smap.smapfingerprintreader.scanners.DemoScanner;
+import au.smap.smapfingerprintreader.scanners.MFS100Scanner;
 import au.smap.smapfingerprintreader.scanners.MFS500Scanner;
 import au.smap.smapfingerprintreader.scanners.Scanner;
 
@@ -135,8 +136,7 @@ public class ScanActivity extends AppCompatActivity {
         if(name.equals("MFS500")) {
             return new MFS500Scanner(getApplicationContext());
         } else  if(name.equals("MFS100")) {
-            app.setLogs("Scanner not supported: " + name, true);
-            return null;
+            return new MFS100Scanner(getApplicationContext());
         } else {
             return new DemoScanner(getApplicationContext());
         }
