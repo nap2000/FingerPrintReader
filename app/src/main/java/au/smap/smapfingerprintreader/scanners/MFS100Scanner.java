@@ -86,9 +86,9 @@ public class MFS100Scanner extends Scanner implements MFS100Event {
         FingerData fingerData = new FingerData();
         int result = mfs100.AutoCapture(fingerData, 10000, false);
         if (result == 0) {
-            return fingerData.FingerImage();
+            //return fingerData.FingerImage();
         } else {
-            return null;
+            //return null;
         }
     }
 
