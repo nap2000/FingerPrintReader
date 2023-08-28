@@ -10,8 +10,4 @@
         app:title="@string/change_scanner"
         app:useSimpleSummaryProvider="true" />
 
-    <Preference
-        app:key="version"
-        app:title="@string/app_version" />
-
 </androidx.preference.PreferenceScreen>
