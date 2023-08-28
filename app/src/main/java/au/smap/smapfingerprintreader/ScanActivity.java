@@ -26,7 +26,8 @@ public class ScanActivity extends AppCompatActivity {
 
     AppBarConfiguration appBarConfiguration;
     FingerprintReader app;
-    Scanner scanner = null;
+    Scanner scanner;
+    String currentState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,7 @@ public class ScanActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scan);
         app.logView = (TextView) findViewById(R.id.log);
         app.clearLogs();
+        currentState = ScannerViewModel.NOSTATE;
 
         /*
          * Get the Intent that started the scan activity
@@ -57,17 +59,28 @@ public class ScanActivity extends AppCompatActivity {
         // Observe scanner state
         app.model.getScannerState().observe(this, state -> {
 
-            if(state.equals("disconnected")) {
-                app.setLogs("Disconnected: " , false);
-                app.setLogs("Connect the device", false);
-            } else if(state.equals("connected")) {
-                app.setLogs("Connected: " , false);
-                app.setLogs("Starting capture", false);
-                scanner.startCapture(app.minQuality, app.timeOut);
-            } else if(state.equals("scanning")) {
-                app.setLogs("Scanning: " , false);
+            if(currentState.equals(state)) {
+                app.setLogs("Event " + state + " received but already in this state", false);
+                return;
             } else {
-                app.setLogs("Unknown scanner state: " + state, true);
+                currentState = state;
+
+                if (state.equals(ScannerViewModel.DISCONNECTED)) {
+                    app.setLogs("Disconnected: ", false);
+                    app.setLogs("Connect the device", false);
+                } else if (state.equals(ScannerViewModel.CONNECTED)) {
+                    if(scanner.isConnected()) {
+                        scanner.startCapture(app.minQuality, app.timeOut);
+                    } else {
+                        // Something went wrong
+                        app.setLogs("Received connected event but device is not connected", false);
+                        currentState = ScannerViewModel.DISCONNECTED;
+                    }
+                } else if (state.equals("scanning")) {
+                    app.setLogs("Scanning: ", false);
+                } else {
+                    app.setLogs("Unknown scanner state: " + state, true);
+                }
             }
 
         });
@@ -91,7 +104,14 @@ public class ScanActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String scannerName = sharedPreferences.getString("scanner", "Demo");
         scanner = getScanner(scannerName);
+        app.setLogs("Connecting scanner: " + scannerName, false);
         scanner.connect();
+        if(scanner.isConnected()) {
+            currentState = ScannerViewModel.CONNECTED;
+            scanner.startCapture(app.minQuality, app.timeOut);
+        } else {
+            currentState = ScannerViewModel.DISCONNECTED;
+        }
 
     }
 
@@ -106,8 +126,6 @@ public class ScanActivity extends AppCompatActivity {
         scanner.destroy();
     }
 
-
-
     @Override
     public boolean onSupportNavigateUp() {
          return super.onSupportNavigateUp();
@@ -117,6 +135,7 @@ public class ScanActivity extends AppCompatActivity {
         if(name.equals("MFS500")) {
             return new MFS500Scanner(getApplicationContext());
         } else  if(name.equals("MFS100")) {
+            app.setLogs("Scanner not supported: " + name, true);
             return null;
         } else {
             return new DemoScanner(getApplicationContext());

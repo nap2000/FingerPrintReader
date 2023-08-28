@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel;
 
 public class ScannerViewModel extends ViewModel {
 
+    public static String DISCONNECTED = "disconnected";
+    public static String CONNECTED = "connected";
+    public static String NOSTATE = "nostate";
     private MutableLiveData<String> scannerState = new MutableLiveData("disconnected");
     private MutableLiveData<Uri> image = new MutableLiveData<>();
 

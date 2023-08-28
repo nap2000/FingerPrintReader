@@ -33,6 +33,7 @@ public class DemoScanner extends Scanner {
 
     }
     public void startCapture(int minQuality, int timeOut) {
+        app.model.getScannerState().postValue("scanning");
         final Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
             // Record successful connection after a delay
@@ -57,4 +58,7 @@ public class DemoScanner extends Scanner {
 
     }
 
+    public boolean isConnected() {
+        return true;
+    }
 }

@@ -33,9 +33,8 @@ public class FingerprintReader extends Application {
 
     public TextView logView;
 
-    public String currentDevice;            // Name of currently connected device
     public ScannerViewModel model;
-    public DeviceInfo lastDeviceInfo;
+
     public int minQuality = 60;
     public int timeOut = 10000;
 
@@ -51,8 +50,6 @@ public class FingerprintReader extends Application {
     public static FingerprintReader getInstance() {
         return singleton;
     }
-
-
 
 
     public void setLogs(final String logs, boolean isError) {

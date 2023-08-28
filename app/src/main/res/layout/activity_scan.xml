@@ -17,17 +17,17 @@
         <TextView
             android:id="@+id/log"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_200sdp"
-            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_height="718dp"
             android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:background="#cccc00"
             android:gravity="center"
             android:maxLines="20"
             android:padding="@dimen/_3sdp"
             android:paddingLeft="@dimen/_5sdp"
             android:scrollHorizontally="false"
             android:textColor="@color/white"
-            android:textSize="@dimen/_10ssp"
-            android:background="#cccc00"/>
+            android:textSize="@dimen/_10ssp" />
     </LinearLayout>
 
 
