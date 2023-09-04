@@ -102,7 +102,6 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
             isStartCaptureRunning = false;
             if (errorCode == 0) {
                 app.setLogs("Capture Success" + quality, false);
-                app.setLogs("Scanner action: " + scannerAction.name(), false);
                 if (scannerAction == ScannerAction.Capture) {
                     int Size = lastDeviceInfo.Width * lastDeviceInfo.Height + 1111;
                     byte[] bImage = new byte[Size];
@@ -133,7 +132,7 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
     }
 
     public void connect() {
-        app.setLogs("MFS500 Connect", false);
+        app.setLogs("MFS500 Connect - Not Used", false);
     }
     public void startCapture(int minQuality, int timeOut) {
 
