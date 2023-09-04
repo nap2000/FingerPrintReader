@@ -8,6 +8,7 @@
         app:key="scanner"
         app:icon="@drawable/ic_usb_24dp"
         app:title="@string/change_scanner"
+        app:defaultValue="MFS500"
         app:useSimpleSummaryProvider="true" />
 
 </androidx.preference.PreferenceScreen>

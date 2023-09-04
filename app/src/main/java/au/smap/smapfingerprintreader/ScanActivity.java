@@ -4,22 +4,18 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.widget.TextView;
 
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.preference.PreferenceManager;
 
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.model.ScannerViewModel;
-import au.smap.smapfingerprintreader.scanners.DemoScanner;
-import au.smap.smapfingerprintreader.scanners.MFS500Scanner;
 import au.smap.smapfingerprintreader.scanners.Scanner;
 import au.smap.smapfingerprintreader.scanners.ScannerFactory;
 
