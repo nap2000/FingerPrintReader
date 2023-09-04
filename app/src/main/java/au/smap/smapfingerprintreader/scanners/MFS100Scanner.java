@@ -98,8 +98,10 @@ public class MFS100Scanner extends Scanner implements MFS100Event {
     }
 
     @Override
-    public boolean isConnected() {
-        return true;
+    public void initialise() {}
+    @Override
+    public void isConnected() {
+
     }
 
     private void initialize() {

@@ -23,6 +23,9 @@ public class DemoScanner extends Scanner {
         app = FingerprintReader.getInstance();
 
     }
+    public void initialise() {
+
+    }
 
     public void connect() {
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -58,7 +61,6 @@ public class DemoScanner extends Scanner {
 
     }
 
-    public boolean isConnected() {
-        return true;
+    public void isConnected() {
     }
 }

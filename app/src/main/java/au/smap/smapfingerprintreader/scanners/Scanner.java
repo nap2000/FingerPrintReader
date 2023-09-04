@@ -3,7 +3,8 @@ package au.smap.smapfingerprintreader.scanners;
 public abstract class Scanner {
 
     public abstract void connect();
+    public abstract void initialise();
     public abstract void startCapture(int minQuality, int timeOut);
     public abstract void destroy();
-    public abstract boolean isConnected();
+    public abstract void isConnected();
 }

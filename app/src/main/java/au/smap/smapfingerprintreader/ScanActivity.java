@@ -8,11 +8,15 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.preference.PreferenceManager;
+
+import com.google.android.material.button.MaterialButton;
 
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.model.ScannerViewModel;
@@ -23,6 +27,7 @@ public class ScanActivity extends AppCompatActivity {
 
     AppBarConfiguration appBarConfiguration;
     FingerprintReader app;
+    public ScannerViewModel model;
     Scanner scanner;
     String currentState;
 
@@ -31,11 +36,17 @@ public class ScanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         app = FingerprintReader.getInstance();
+
         setContentView(R.layout.activity_scan);
+        app.connectProgressBar = (LinearLayout) findViewById(R.id.connect_progress_bar);
+        app.captureProgressBar = (LinearLayout) findViewById(R.id.capture_progress_bar);
+        app.captureButton = (MaterialButton) findViewById(R.id.capture_button);
+
         app.logView = (TextView) findViewById(R.id.log);
         app.clearLogs();
         currentState = ScannerViewModel.NOSTATE;
 
+        app.setLogs("Create", false);
         /*
          * Get the Intent that started the scan activity
          * Get the parameters
@@ -61,17 +72,24 @@ public class ScanActivity extends AppCompatActivity {
                 currentState = state;
 
                 if (state.equals(ScannerViewModel.DISCONNECTED)) {
-                    app.setLogs("Disconnected: ", false);
-                    app.setLogs("Connect the device", false);
+                    app.connectProgressBar.setVisibility(View.VISIBLE);
+                    app.captureButton.setVisibility(View.GONE);
+                    app.captureProgressBar.setVisibility(View.GONE);
+
+                    app.setLogs("Disconnected. Connect the device. ", false);
                 } else if (state.equals(ScannerViewModel.CONNECTED)) {
-                    if(scanner.isConnected()) {
-                        scanner.startCapture(app.minQuality, app.timeOut);
-                    } else {
-                        // Something went wrong
-                        app.setLogs("Received connected event but device is not connected", false);
-                        currentState = ScannerViewModel.DISCONNECTED;
-                    }
-                } else if (state.equals("scanning")) {
+                    app.connectProgressBar.setVisibility(View.VISIBLE);
+                    app.captureButton.setVisibility(View.GONE);
+                    app.captureProgressBar.setVisibility(View.GONE);
+
+                    app.setLogs("Connected: ", false);
+                    scanner.initialise();
+                    scanner.startCapture(app.minQuality, app.timeOut);
+                } else if (state.equals(ScannerViewModel.SCANNING)) {
+                    app.connectProgressBar.setVisibility(View.GONE);
+                    app.captureButton.setVisibility(View.GONE);
+                    app.captureProgressBar.setVisibility(View.VISIBLE);
+
                     app.setLogs("Scanning: ", false);
                 } else {
                     app.setLogs("Unknown scanner state: " + state, true);
@@ -100,23 +118,36 @@ public class ScanActivity extends AppCompatActivity {
         String scannerName = sharedPreferences.getString("scanner", "Demo");
         scanner = ScannerFactory.getScanner(scannerName, getApplicationContext());
         app.setLogs("Connecting scanner: " + scannerName, false);
-        scanner.connect();
-        if(scanner.isConnected()) {
-            currentState = ScannerViewModel.CONNECTED;
-            scanner.startCapture(app.minQuality, app.timeOut);
-        } else {
-            currentState = ScannerViewModel.DISCONNECTED;
-        }
+
+        scanner.isConnected();
+        currentState = ScannerViewModel.DISCONNECTED;
+        app.connectProgressBar.setVisibility(View.VISIBLE);
+        app.captureButton.setVisibility(View.GONE);
+        app.captureProgressBar.setVisibility(View.GONE);
+
 
     }
 
     @Override
+    protected void onStart(){
+        super.onStart();
+        app.setLogs("Start", false);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        app.setLogs("Pause", false);
+    }
+    @Override
     protected void onPause() {
+        app.setLogs("Pause", false);
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
+        app.setLogs("Destroy", false);
         super.onDestroy();
         scanner.destroy();
     }

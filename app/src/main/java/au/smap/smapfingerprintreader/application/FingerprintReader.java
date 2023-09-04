@@ -8,11 +8,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
+import com.google.android.material.button.MaterialButton;
 import com.mantra.morfinauth.DeviceInfo;
 import com.mantra.morfinauth.MorfinAuth;
 import com.mantra.morfinauth.MorfinAuth_Callback;
@@ -32,6 +34,9 @@ public class FingerprintReader extends Application {
     private static FingerprintReader singleton;
 
     public TextView logView;
+    public LinearLayout connectProgressBar;
+    public LinearLayout captureProgressBar;
+    public MaterialButton captureButton;
 
     public ScannerViewModel model;
 
