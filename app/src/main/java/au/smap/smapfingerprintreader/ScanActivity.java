@@ -19,9 +19,9 @@ import androidx.preference.PreferenceManager;
 import au.smap.smapfingerprintreader.application.FingerprintReader;
 import au.smap.smapfingerprintreader.model.ScannerViewModel;
 import au.smap.smapfingerprintreader.scanners.DemoScanner;
-import au.smap.smapfingerprintreader.scanners.MFS100Scanner;
 import au.smap.smapfingerprintreader.scanners.MFS500Scanner;
 import au.smap.smapfingerprintreader.scanners.Scanner;
+import au.smap.smapfingerprintreader.scanners.ScannerFactory;
 
 public class ScanActivity extends AppCompatActivity {
 
@@ -48,8 +48,6 @@ public class ScanActivity extends AppCompatActivity {
         String type = intent.getStringExtra("type");
         app.minQuality = 20;
         app.timeOut = 10000;
-
-
 
         /*
          * Create Observers
@@ -104,7 +102,7 @@ public class ScanActivity extends AppCompatActivity {
          */
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String scannerName = sharedPreferences.getString("scanner", "Demo");
-        scanner = getScanner(scannerName);
+        scanner = ScannerFactory.getScanner(scannerName, getApplicationContext());
         app.setLogs("Connecting scanner: " + scannerName, false);
         scanner.connect();
         if(scanner.isConnected()) {
@@ -132,14 +130,6 @@ public class ScanActivity extends AppCompatActivity {
          return super.onSupportNavigateUp();
     }
 
-    private Scanner getScanner(String name) {
-        if(name.equals("MFS500")) {
-            return new MFS500Scanner(getApplicationContext());
-        } else  if(name.equals("MFS100")) {
-            return new MFS100Scanner(getApplicationContext());
-        } else {
-            return new DemoScanner(getApplicationContext());
-        }
-    }
+
 
 }
