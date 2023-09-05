@@ -36,10 +36,6 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
         morfinAuth = new MorfinAuth(context, this);
         app.setLogs("Scanner added", false);
 
-        String file = context.getFilesDir().toString();
-        morfinAuth.SetLogProperties(file, LogLevel.DEBUG);
-        app.setLogs(file, false);
-
         captureImageData = (ImageFormat.BMP);
         captureTemplateDatas = (TemplateFormat.FMR_V2005);
 
@@ -106,9 +102,10 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
             } else {
                 if(errorCode == -2057){
                     app.setLogs("Device Not Connected",true);
-                }else{
-                    app.setLogs("CaptureComplete: " + errorCode + " (" + morfinAuth.GetErrorMessage(errorCode) + ")", true);
+                } else{
+                    app.setLogs("Error: " + errorCode + " (" + morfinAuth.GetErrorMessage(errorCode) + ")", true);
                 }
+                app.model.getScannerState().postValue(ScannerViewModel.ERROR);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -120,16 +117,19 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
     }
     public void startCapture(int minQuality, int timeOut) {
 
-        app.model.getScannerState().postValue(ScannerViewModel.SCANNING);
+        if(!morfinAuth.IsCaptureRunning()) {
+            app.model.getScannerState().postValue(ScannerViewModel.SCANNING);
 
-        scannerAction = ScannerAction.Capture;
-        try {
-            app.setLogs("Start capture: " + minQuality + " : " + timeOut, false);
-            int ret = morfinAuth.StartCapture(minQuality, timeOut);
-            app.setLogs("StartCapture Ret: " + ret + " (" + morfinAuth.GetErrorMessage(ret) + ")", ret == 0 ? false : true);
-        } catch (Exception e) {
-            e.printStackTrace();
+            scannerAction = ScannerAction.Capture;
+            try {
+                app.setLogs("Start capture: " + minQuality + " : " + timeOut, false);
+                int ret = morfinAuth.StartCapture(minQuality, timeOut);
+                app.setLogs("StartCapture Ret: " + ret + " (" + morfinAuth.GetErrorMessage(ret) + ")", ret == 0 ? false : true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
     public void isConnected() {
@@ -139,7 +139,6 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
                 try {
                     if(morfinAuth.IsDeviceConnected(DeviceModel.valueFor("MFS500"))) {
                         initialise();
-                        startCapture(app.minQuality, app.timeOut);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -169,9 +168,9 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
                         app.setLogs("Init: " + ret + " (" + morfinAuth.GetErrorMessage(ret) + ")", true);
                     } else {
                         app.setLogs("Init Success", false);
-                        //setDeviceInfo(info);
                     }
-                    startCapture(app.minQuality, app.timeOut);
+                    startCapture(app.minQuality, app.timeout);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     app.setLogs("Initialization Failed " + e.getMessage(), false);

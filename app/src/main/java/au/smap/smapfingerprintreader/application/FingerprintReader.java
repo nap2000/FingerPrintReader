@@ -62,12 +62,17 @@ public class FingerprintReader extends Application {
         logView.setVisibility(View.VISIBLE);
     }
 
+    public void hideLogs() {
+        logView.setVisibility(View.GONE);
+    }
+
     public void setLogs(final String logs, boolean isError) {
         logView.post(new Runnable() {
             @Override
             public void run() {
                 if (isError) {
                     logView.setTextColor(Color.RED);
+                    showLogs();
                 } else {
                     logView.setTextColor(Color.BLACK);
                 }

@@ -118,7 +118,7 @@ public class ScanActivity extends AppCompatActivity {
          * Set up the scanner
          */
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String scannerName = sharedPreferences.getString("scanner", "Demo");
+        String scannerName = sharedPreferences.getString("scanner", "MFS500");
         scanner = ScannerFactory.getScanner(scannerName, getApplicationContext());
         app.setLogs("Connecting scanner: " + scannerName, false);
 
@@ -127,6 +127,7 @@ public class ScanActivity extends AppCompatActivity {
         app.connectProgressBar.setVisibility(View.VISIBLE);
         app.captureButton.setVisibility(View.GONE);
         app.captureProgressBar.setVisibility(View.GONE);
+        app.hideLogs();
 
 
     }
@@ -134,23 +135,19 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        app.setLogs("Start", false);
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        app.setLogs("Pause", false);
     }
     @Override
     protected void onPause() {
-        app.setLogs("Pause", false);
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        app.setLogs("Destroy", false);
         super.onDestroy();
         scanner.destroy();
     }
