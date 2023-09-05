@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -32,7 +33,7 @@ import au.smap.smapfingerprintreader.model.ScannerViewModel;
 public class FingerprintReader extends Application {
 
     private static FingerprintReader singleton;
-
+    public String TYPE_IMAGE = "image";
     public TextView logView;
     public LinearLayout connectProgressBar;
     public LinearLayout captureProgressBar;
@@ -40,8 +41,9 @@ public class FingerprintReader extends Application {
 
     public ScannerViewModel model;
 
+    public String type;
     public int minQuality = 60;
-    public int timeOut = 10000;
+    public int timeout = 10000;
 
     private byte[] lastCapFingerData;
 
@@ -56,6 +58,9 @@ public class FingerprintReader extends Application {
         return singleton;
     }
 
+    public void showLogs() {
+        logView.setVisibility(View.VISIBLE);
+    }
 
     public void setLogs(final String logs, boolean isError) {
         logView.post(new Runnable() {
@@ -90,5 +95,24 @@ public class FingerprintReader extends Application {
         return new String(hexChars);
     }
 
+    public void setParameters(Intent intent) {
+        type = intent.getStringExtra("type");
+        if(type == null || type.isEmpty()) {
+            type = TYPE_IMAGE;
+        }
+        String mq = intent.getStringExtra("quality");
+        String to = intent.getStringExtra("timeout");
+
+        try {
+            minQuality = Integer.valueOf(mq);
+        } catch (Exception e) {
+            minQuality = 60;
+        }
+        try {
+            timeout = Integer.valueOf(to);
+        } catch (Exception e) {
+            timeout = 10000;
+        }
+    }
 
 }

@@ -51,10 +51,7 @@ public class ScanActivity extends AppCompatActivity {
          * Get the Intent that started the scan activity
          * Get the parameters
          */
-        Intent intent = getIntent();
-        String type = intent.getStringExtra("type");
-        app.minQuality = 20;
-        app.timeOut = 10000;
+        app.setParameters(getIntent());
 
         /*
          * Create Observers
@@ -84,11 +81,17 @@ public class ScanActivity extends AppCompatActivity {
 
                     app.setLogs("Connected: ", false);
                     scanner.initialise();
-                    scanner.startCapture(app.minQuality, app.timeOut);
                 } else if (state.equals(ScannerViewModel.SCANNING)) {
                     app.connectProgressBar.setVisibility(View.GONE);
                     app.captureButton.setVisibility(View.GONE);
                     app.captureProgressBar.setVisibility(View.VISIBLE);
+
+                    app.setLogs("Scanning: ", false);
+                } else if (state.equals(ScannerViewModel.ERROR)) {
+                    app.connectProgressBar.setVisibility(View.GONE);
+                    app.captureButton.setVisibility(View.GONE);
+                    app.captureProgressBar.setVisibility(View.GONE);
+                    app.showLogs();
 
                     app.setLogs("Scanning: ", false);
                 } else {
