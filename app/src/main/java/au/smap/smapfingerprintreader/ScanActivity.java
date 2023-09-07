@@ -80,7 +80,7 @@ public class ScanActivity extends AppCompatActivity {
                     app.captureProgressBar.setVisibility(View.GONE);
 
                     app.setLogs("Connected: ", false);
-                    scanner.initialise();
+                    scanner.startCapture();
                 } else if (state.equals(ScannerViewModel.SCANNING)) {
                     app.connectProgressBar.setVisibility(View.GONE);
                     app.captureButton.setVisibility(View.GONE);

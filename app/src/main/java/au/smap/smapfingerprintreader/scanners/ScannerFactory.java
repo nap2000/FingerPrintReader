@@ -9,6 +9,8 @@ public class ScannerFactory {
             return new MFS500Scanner(context);
         } else  if(name.equals("MFS100")) {
             return new MFS100Scanner(context);
+        } else  if(name.equals("Demo")) {
+            return new DemoScanner(context);
         } else {
             return new MFS500Scanner(context);
         }

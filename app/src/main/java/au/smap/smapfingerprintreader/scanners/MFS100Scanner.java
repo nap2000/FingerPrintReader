@@ -81,7 +81,7 @@ public class MFS100Scanner extends Scanner implements MFS100Event {
     }
 
     @Override
-    public void startCapture(int minQuality, int timeOut) {
+    public void startCapture() {
         app.setLogs("startCapture", false);
         FingerData fingerData = new FingerData();
         int result = mfs100.AutoCapture(fingerData, 10000, false);
@@ -97,8 +97,6 @@ public class MFS100Scanner extends Scanner implements MFS100Event {
         app.setLogs("destroy", false);
     }
 
-    @Override
-    public void initialise() {}
     @Override
     public void isConnected() {
 

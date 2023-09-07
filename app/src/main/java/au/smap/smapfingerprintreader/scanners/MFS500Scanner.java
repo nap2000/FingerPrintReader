@@ -115,7 +115,7 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
     public void connect() {
         app.setLogs("MFS500 Connect - Not Used", false);
     }
-    public void startCapture(int minQuality, int timeOut) {
+    private void getFingerprint(int minQuality, int timeOut) {
 
         if(!morfinAuth.IsCaptureRunning()) {
             app.model.getScannerState().postValue(ScannerViewModel.SCANNING);
@@ -138,7 +138,7 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
             public void run() {
                 try {
                     if(morfinAuth.IsDeviceConnected(DeviceModel.valueFor("MFS500"))) {
-                        initialise();
+                        startCapture();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -156,7 +156,7 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
         }
     }
 
-    public void initialise() {
+    public void startCapture() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -169,7 +169,7 @@ public class MFS500Scanner extends Scanner implements MorfinAuth_Callback {
                     } else {
                         app.setLogs("Init Success", false);
                     }
-                    startCapture(app.minQuality, app.timeout);
+                    getFingerprint(app.minQuality, app.timeout);
 
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -23,9 +23,6 @@ public class DemoScanner extends Scanner {
         app = FingerprintReader.getInstance();
 
     }
-    public void initialise() {
-
-    }
 
     public void connect() {
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -35,7 +32,7 @@ public class DemoScanner extends Scanner {
         }, 2000);
 
     }
-    public void startCapture(int minQuality, int timeOut) {
+    public void startCapture() {
         app.model.getScannerState().postValue("scanning");
         final Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
@@ -62,5 +59,6 @@ public class DemoScanner extends Scanner {
     }
 
     public void isConnected() {
+        connect();
     }
 }
